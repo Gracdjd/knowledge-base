@@ -47,3 +47,20 @@
 | **通信机制** | 通过 JSBridge 跨进程传输数据，序列化开销大 | AppService 线程与渲染线程数据共享，`setData` 直接操作虚拟节点树（通过 glass-easel 框架实现），通信耗时减少 **50%+** |
 | **内存管理** | 每个页面独立 WebView 实例，公共资源重复加载，页面层级最多 10 层 | 多页面共享引擎实例（JS 引擎、渲染引擎），多个 Skyline 页面运行在同一个渲染引擎实例下，支持更细粒度的页面间资源共享。内存占用降低 **30%-50%**，页面跳转耗时减少 **17.6%** |
 | **长列表优化** | 全量渲染所有节点，滑动时易掉帧 | Lazy Mount 机制（仅渲染视口内节点）+ 分块光栅化，首次渲染耗时减少 **50%**，滑动时 GPU 加速光栅化，避免白屏和视觉撕裂 |
+
+## 内存（多个页面）
+webview和skyline实际实际上都只有一个JS实例，运行js逻辑，webview的渲染层有多个webview实例，skyline只有一个
+Page B WebView（事件，生命周期， setData）
+  ↓
+Native（JSBridge）
+  ↓
+JS 逻辑层（eventBus.emit）
+  ↓
+JS 逻辑层（eventBus.on）
+  ↓
+Native（JSBridge）
+  ↓
+Page A WebView（setData）
+
+而在skyline下完全不需要JSBridge
+
